@@ -41,7 +41,7 @@
           tarmoqchi = pkgs.runCommand "tarmoqchi-wrappper" {} ''
             mkdir -p $out/bin
             ln -s ${cli}/bin/cli $out/bin/tarmoqchi
-          ''
+          '';
 
           default = tarmoqchi;
         };
