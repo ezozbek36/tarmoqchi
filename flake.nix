@@ -34,10 +34,16 @@
         };
 
         # Output package
-        packages = {
-          default = self.packages.${system}.cli;
+        packages = rec {
           cli = pkgs.callPackage ./cli/default.nix {inherit pkgs;};
           server = pkgs.callPackage ./server/default.nix {inherit pkgs;};
+
+          tarmoqchi = pkgs.runCommand "tarmoqchi-wrappper" {} ''
+            mkdir -p $out/bin
+            ln -s ${cli}/bin/cli $out/bin/tarmoqchi
+          ''
+
+          default = tarmoqchi;
         };
       }
     )
