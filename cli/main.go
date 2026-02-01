@@ -71,6 +71,7 @@ type WebSocketManager struct {
 	writeChan chan []byte
 	closeChan chan struct{}
 	wg        sync.WaitGroup
+	mu 	      sync.Mutex
 }
 
 func NewWebSocketManager(conn *websocket.Conn) *WebSocketManager {
@@ -92,7 +93,9 @@ func (wsm *WebSocketManager) writerLoop() {
 	for {
 		select {
 		case message := <-wsm.writeChan:
+			wsm.mu.Lock()
 			err := wsm.conn.WriteMessage(websocket.TextMessage, message)
+			wsm.mu.Unlock()
 			if err != nil {
 				printError("WebSocket error: " + err.Error())
 				return
@@ -111,10 +114,14 @@ func (wsm *WebSocketManager) Write(message []byte) {
 }
 
 func (wsm *WebSocketManager) WritePing() error {
+	wsm.mu.Lock()
+	defer wsm.mu.Unlock()
 	return wsm.conn.WriteMessage(websocket.PingMessage, []byte("ping"))
 }
 
 func (wsm *WebSocketManager) WriteClose(closeCode int, text string) error {
+	wsm.mu.Lock()
+	defer wsm.mu.Unlock()
 	return wsm.conn.WriteMessage(websocket.CloseMessage,
 		websocket.FormatCloseMessage(closeCode, text))
 }
